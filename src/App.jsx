@@ -201,7 +201,7 @@ function computeHMM(returns,dates,closes){
   });
   const trans=hmm.A.map((row,i)=>({from:NAMES[i],probs:row.map((p,j)=>({to:NAMES[j],p:(p*100).toFixed(1)}))}));
   const step=Math.max(1,Math.floor(closes.length/150));
-  const regimeChart=hmm.states.map((s,i)=>({date:dates[i+1]||`D${i+1}`,price:parseFloat(closes[i+1].toFixed(2)),regime:s})).filter((_,i)=>i%step===0);
+  const regimeChart=hmm.states.map((s,i)=>({t:i+1,date:dates[i+1]||`D${i+1}`,price:parseFloat(closes[i+1].toFixed(2)),regime:s})).filter((_,i)=>i%step===0);
   const runs=[];let cur=hmm.states[0],start=0;
   for(let i=1;i<=hmm.states.length;i++){if(i===hmm.states.length||hmm.states[i]!==cur){runs.push({regime:cur,len:i-start});cur=hmm.states[i];start=i;}}
   const avgRun=NAMES.map((_,s)=>{const r=runs.filter(x=>x.regime===s);return r.length?r.reduce((a,b)=>a+b.len,0)/r.length:0;});
@@ -559,8 +559,8 @@ export default function QuantRiskTerminal(){
                   <ResponsiveContainer width="100%" height={220}>
                     <ScatterChart margin={{top:5,right:5,bottom:5,left:5}}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#0d1828"/>
-                      <XAxis dataKey="date" tick={{fill:'#1a3a50',fontSize:7}} tickLine={false} interval="preserveStartEnd"/>
-                      <YAxis tick={{fill:'#1a3a50',fontSize:8}} tickLine={false} axisLine={false} tickFormatter={v=>`₹${(v/1000).toFixed(0)}k`}/>
+                      <XAxis dataKey="t" type="number" domain={['dataMin','dataMax']} tick={{fill:'#1a3a50',fontSize:7}} tickLine={false} tickCount={8} tickFormatter={v=>data.dates[Math.round(v)]||''}/>
+                      <YAxis dataKey="price" type="number" domain={['auto','auto']} tick={{fill:'#1a3a50',fontSize:8}} tickLine={false} axisLine={false} tickFormatter={v=>`₹${(v/1000).toFixed(0)}k`}/>
                       <Tooltip cursor={false} content={({payload})=>{
                         if(!payload||!payload.length)return null;
                         const d=payload[0]?.payload;if(!d)return null;
